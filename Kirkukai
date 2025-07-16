@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iraq Country Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .question-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .correct-answer {
+            background: linear-gradient(135deg, #10b981, #059669);
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+        .wrong-answer {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            transform: scale(0.98);
+            transition: all 0.3s ease;
+        }
+        .flag-gradient {
+            background: linear-gradient(to bottom, #ff0000 0%, #ff0000 33%, #ffffff 33%, #ffffff 66%, #000000 66%, #000000 100%);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-amber-50 to-orange-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="flag-gradient w-20 h-12 mx-auto mb-4 rounded-lg shadow-lg border-2 border-gray-300"></div>
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">🇮🇶 Iraq Country Quiz</h1>
+            <p class="text-gray-600 text-lg">Test your knowledge about the Republic of Iraq!</p>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+            <!-- Question Counter -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="text-sm font-medium text-gray-500">
+                    Question <span id="current-question">1</span> of <span id="total-questions">10</span>
+                </div>
+                <div class="text-sm font-medium text-gray-500">
+                    Score: <span id="current-score" class="text-green-600 font-bold">0</span>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-8">
+                <div id="progress-bar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-500" style="width: 10%"></div>
+            </div>
+
+            <!-- Question -->
+            <div id="question-container" class="question-fade-in">
+                <h2 id="question-text" class="text-2xl font-semibold text-gray-800 mb-6 leading-relaxed"></h2>
+                
+                <!-- Answer Options -->
+                <div id="answers-container" class="space-y-4">
+                    <!-- Answer buttons will be inserted here -->
+                </div>
+
+                <!-- Next Button -->
+                <button id="next-btn" class="hidden mt-8 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                    Next Question →
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Container (Hidden initially) -->
+        <div id="results-container" class="hidden bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div class="mb-6">
+                <div id="results-emoji" class="text-6xl mb-4"></div>
+                <h2 id="results-title" class="text-3xl font-bold text-gray-800 mb-2"></h2>
+                <p id="results-message" class="text-gray-600 text-lg mb-4"></p>
+                <div class="text-4xl font-bold text-blue-600 mb-6">
+                    <span id="final-score"></span> / 10
+                </div>
+            </div>
+            <button id="restart-btn" class="bg-gradient-to-r from-green-500 to-teal-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-green-600 hover:to-teal-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                🔄 Take Quiz Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                question: "What is the capital city of Iraq?",
+                options: ["Baghdad", "Basra", "Mosul", "Erbil"],
+                correct: 0
+            },
+            {
+                question: "Which river is considered the most important in Iraq?",
+                options: ["Nile River", "Jordan River", "Tigris River", "Euphrates River"],
+                correct: 2
+            },
+            {
+                question: "What is the official language of Iraq?",
+                options: ["Persian", "Turkish", "Kurdish", "Arabic"],
+                correct: 3
+            },
+            {
+                question: "Iraq is located in which continent?",
+                options: ["Africa", "Asia", "Europe", "South America"],
+                correct: 1
+            },
+            {
+                question: "What ancient civilization flourished in the region that is now Iraq?",
+                options: ["Ancient Egypt", "Mesopotamia", "Ancient Greece", "Roman Empire"],
+                correct: 1
+            },
+            {
+                question: "Which body of water borders Iraq to the southeast?",
+                options: ["Mediterranean Sea", "Red Sea", "Persian Gulf", "Caspian Sea"],
+                correct: 2
+            },
+            {
+                question: "What is the approximate population of Iraq?",
+                options: ["25 million", "40 million", "60 million", "80 million"],
+                correct: 1
+            },
+            {
+                question: "Which country does NOT border Iraq?",
+                options: ["Iran", "Turkey", "Syria", "Afghanistan"],
+                correct: 3
+            },
+            {
+                question: "What is Iraq's main natural resource?",
+                options: ["Gold", "Oil", "Diamonds", "Coal"],
+                correct: 1
+            },
+            {
+                question: "In which year did Iraq gain independence from British mandate?",
+                options: ["1920", "1932", "1945", "1958"],
+                correct: 1
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let selectedAnswer = null;
+
+        const questionText = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers-container');
+        const nextBtn = document.getElementById('next-btn');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const currentScoreSpan = document.getElementById('current-score');
+        const progressBar = document.getElementById('progress-bar');
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+
+        // Initialize quiz
+        totalQuestionsSpan.textContent = quizData.length;
+        loadQuestion();
+
+        function loadQuestion() {
+            if (currentQuestion >= quizData.length) {
+                showResults();
+                return;
+            }
+
+            const question = quizData[currentQuestion];
+            questionText.textContent = question.question;
+            currentQuestionSpan.textContent = currentQuestion + 1;
+            
+            // Update progress bar
+            const progress = ((currentQuestion + 1) / quizData.length) * 100;
+            progressBar.style.width = progress + '%';
+
+            // Clear previous answers
+            answersContainer.innerHTML = '';
+            selectedAnswer = null;
+            nextBtn.classList.add('hidden');
+
+            // Create answer buttons
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 font-medium text-gray-700';
+                button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                button.onclick = () => selectAnswer(index, button);
+                answersContainer.appendChild(button);
+            });
+        }
+
+        function selectAnswer(answerIndex, buttonElement) {
+            if (selectedAnswer !== null) return; // Prevent multiple selections
+
+            selectedAnswer = answerIndex;
+            const correct = quizData[currentQuestion].correct;
+            
+            // Get all answer buttons
+            const allButtons = answersContainer.querySelectorAll('button');
+            
+            // Style the selected answer
+            if (answerIndex === correct) {
+                buttonElement.className = 'w-full text-left p-4 rounded-xl border-2 border-green-500 text-white font-medium correct-answer';
+                score++;
+                currentScoreSpan.textContent = score;
+            } else {
+                buttonElement.className = 'w-full text-left p-4 rounded-xl border-2 border-red-500 text-white font-medium wrong-answer';
+                // Highlight the correct answer
+                allButtons[correct].className = 'w-full text-left p-4 rounded-xl border-2 border-green-500 text-white font-medium correct-answer';
+            }
+
+            // Disable all buttons
+            allButtons.forEach(btn => {
+                btn.style.pointerEvents = 'none';
+            });
+
+            // Show next button
+            nextBtn.classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        function showResults() {
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+
+            const percentage = (score / quizData.length) * 100;
+            const finalScoreSpan = document.getElementById('final-score');
+            const resultsEmoji = document.getElementById('results-emoji');
+            const resultsTitle = document.getElementById('results-title');
+            const resultsMessage = document.getElementById('results-message');
+
+            finalScoreSpan.textContent = score;
+
+            if (percentage >= 80) {
+                resultsEmoji.textContent = '🎉';
+                resultsTitle.textContent = 'Excellent!';
+                resultsMessage.textContent = 'You have great knowledge about Iraq!';
+            } else if (percentage >= 60) {
+                resultsEmoji.textContent = '👏';
+                resultsTitle.textContent = 'Good Job!';
+                resultsMessage.textContent = 'You know quite a bit about Iraq!';
+            } else if (percentage >= 40) {
+                resultsEmoji.textContent = '📚';
+                resultsTitle.textContent = 'Not Bad!';
+                resultsMessage.textContent = 'You might want to learn more about Iraq.';
+            } else {
+                resultsEmoji.textContent = '💪';
+                resultsTitle.textContent = 'Keep Learning!';
+                resultsMessage.textContent = 'There\'s so much more to discover about Iraq!';
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            selectedAnswer = null;
+            currentScoreSpan.textContent = '0';
+            
+            resultsContainer.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+            
+            loadQuestion();
+        }
+
+        // Event listeners
+        nextBtn.addEventListener('click', nextQuestion);
+        document.getElementById('restart-btn').addEventListener('click', restartQuiz);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9601081c80c2ad36',t:'MTc1MjY2NDAwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
